@@ -1,5 +1,5 @@
 # Problem 54
-# Answer: 
+# Answer: 376
 
 '''
 In the card game poker, a hand consists of five cards and are ranked, from lowest to highest, in the following way:
@@ -42,6 +42,17 @@ rankings = {
 
 def sortCards(c1, c2):
 	return rankings[c1] - rankings[c2]
+
+def isFlush(hand):
+	suits = ''.join(map(lambda x: x[-1], hand))
+	return suits.count(suits[0]) == 5
+
+def isStraight(hand):
+	hands = sorted(map(lambda x: x[0], hand), cmp=sortCards)
+	for i in range(0,4):
+		if rankings[hands[i]] + 1 != rankings[hands[i+1]]:
+			return False
+	return True
 
 def royalFlush(hand1, hand2):
 	cards1 = ''.join(sorted(map(lambda x: x[0], hand1), cmp=sortCards))
@@ -123,7 +134,7 @@ def flush(hand1, hand2):
 			for i in xrange(0,5):
 				if rankings[cards1[4-i]] != rankings[cards2[4-i]]:
 					return rankings[cards2[4-i]] - rankings[cards1[4-i]]
-			print "Failed!"
+			print "Failed"
 			return -1 # Should never be reached
 		elif isFlush(hand1):
 			return -1
@@ -134,7 +145,7 @@ def straight(hand1, hand2):
 	if not isStraight(hand1) and not isStraight(hand2):
 		return 0
 	else:
-		if isStraight(hand1) and not isStraight(hand2):
+		if isStraight(hand1) and isStraight(hand2):
 			oneLargest = sorted(map(lambda x: x[0], hand1), cmp=sortCards)[-1]
 			twoLargest = sorted(map(lambda x: x[0], hand2), cmp=sortCards)[-1]
 			return rankings[twoLargest] - rankings[oneLargest]
@@ -193,8 +204,8 @@ def twoPairs(hand1, hand2):
 			for i in xrange(0,2):
 				if rankings[onePairs[1-i]] != rankings[twoPairs[1-i]]:
 					return rankings[twoPairs[1-i]] - rankings[onePairs[1-i]]
-			oneSingle = [y for y in x if cards1.count(y) == 1][0]
-			twoSingle = [y for y in x if cards2.count(y) == 1][0]
+			oneSingle = [y for y in cards1 if cards1.count(y) == 1][0]
+			twoSingle = [y for y in cards2 if cards2.count(y) == 1][0]
 			return rankings[twoSingle] - rankings[oneSingle]
 		elif oneData.values().count(2) == 2:
 			return -1
@@ -206,33 +217,34 @@ def onePair(hand1, hand2):
 	cards2 = sorted(map(lambda x: x[0], hand2), cmp=sortCards)
 	oneData = {x: cards1.count(x) for x in cards1}
 	twoData = {x: cards2.count(x) for x in cards2}
-	if oneData.values().count(2) != 2 and twoData.values().count(2) != 2:
+	if oneData.values().count(2) != 1 and twoData.values().count(2) != 1:
 		return 0
 	else:
-		if oneData.values().count(2) == 2 and twoData.values().count(2) == 2:
-			onePairs = sorted(filter(lambda x: oneData[x] == 2, oneData), cmp=sortCards)
-			twoPairs = sorted(filter(lambda x: twoData[x] == 2, twoData), cmp=sortCards)
-			for i in xrange(0,2):
-				if rankings[onePairs[1-i]] != rankings[twoPairs[1-i]]:
-					return rankings[twoPairs[1-i]] - rankings[onePairs[1-i]]
-			oneSingle = [y for y in x if cards1.count(y) == 1][0]
-			twoSingle = [y for y in x if cards2.count(y) == 1][0]
-			return rankings[twoSingle] - rankings[oneSingle]
-		elif oneData.values().count(2) == 2:
+		if oneData.values().count(2) == 1 and twoData.values().count(2) == 1:
+			onePair = [y for y in cards1 if cards1.count(y) == 2][0]
+			twoPair = [y for y in cards2 if cards2.count(y) == 2][0]
+			if rankings[onePair] != rankings[twoPair]:
+				return rankings[twoPair] - rankings[onePair]
+
+			oneSingles = sorted(filter(lambda x: oneData[x] == 1, oneData), cmp=sortCards)
+			twoSingles = sorted(filter(lambda x: twoData[x] == 1, twoData), cmp=sortCards)
+			for i in xrange(0,3):
+				if rankings[oneSingles[2-i]] != rankings[twoSingles[2-i]]:
+					return rankings[twoSingles[2-i]] - rankings[oneSingles[2-i]]
+			return 1
+		elif oneData.values().count(2) == 1:
 			return -1
 		else:
 			return 1
 
-def isFlush(hand):
-	suits = ''.join(map(lambda x: x[-1], hand))
-	return suits.count(suits[0]) == 5
-
-def isStraight(hand):
-	hands = sorted(map(lambda x: x[0], hand), cmp=sortCards)
-	for i in range(0,3):
-		if rankings[hands[i]] + 1 != rankings[hands[i+1]]:
-			return False
-	return True
+def highCard(hand1,hand2):
+	cards1 = sorted(map(lambda x: x[0], hand1), cmp=sortCards)
+	cards2 = sorted(map(lambda x: x[0], hand2), cmp=sortCards)
+	for i in xrange(0,5):
+		if rankings[cards1[4-i]] != rankings[cards2[4-i]]:
+			return rankings[cards2[4-i]] - rankings[cards1[4-i]]
+	print "Failed"
+	return -1
 
 def oneWon(hand1, hand2):
 	s = royalFlush(hand1,hand2)
@@ -267,7 +279,11 @@ def oneWon(hand1, hand2):
 								if s != 0:
 									return s < 0
 								else:
-									return False
+									s = onePair(hand1,hand2)
+									if s != 0:
+										return s < 0
+									else:
+										return highCard(hand1,hand2) < 0
 
 total = 0
 with open('poker.txt','r') as f:
