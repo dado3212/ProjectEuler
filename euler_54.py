@@ -78,8 +78,147 @@ def fourOfAKind(hand1, hand2):
 		return 0
 	else:
 		if (oneFour and twoFour):
-			
+			oneFourCard = cards1[0] if ''.join(cards1).count(cards1[0]) == 4 else cards1[-1]
+			twoFourCard = cards2[0] if ''.join(cards2).count(cards2[0]) == 4 else cards2[-1]
+			if rankings[oneFourCard] != rankings[twoFourCard]:
+				return rankings[twoFourCard] - rankings[oneFourCard]
+			else:
+				oneSingleCard = cards1[0] if ''.join(cards1).count(cards1[0]) == 1 else cards1[-1]
+				twoSingleCard = cards2[0] if ''.join(cards2).count(cards2[0]) == 1 else cards2[-1]
+				return rankings[twoSingleCard] - rankings[oneSingleCard]
 		elif oneFour:
+			return -1
+		else:
+			return 1
+
+def fullHouse(hand1, hand2):
+	cards1 = sorted(map(lambda x: x[0], hand1), cmp=sortCards)
+	cards2 = sorted(map(lambda x: x[0], hand2), cmp=sortCards)
+	oneFull = (''.join(cards1).count(cards1[0]) == 2 and ''.join(cards1).count(cards1[-1]) == 3) or (''.join(cards1).count(cards1[0]) == 3 and ''.join(cards1).count(cards1[-1]) == 2)
+	twoFull = (''.join(cards2).count(cards2[0]) == 2 and ''.join(cards2).count(cards2[-1]) == 3) or (''.join(cards2).count(cards2[0]) == 3 and ''.join(cards2).count(cards2[-1]) == 2)
+	if not oneFull and not twoFull:
+		return 0
+	else:
+		if (oneFull and twoFull):
+			oneLarger = cards1[0] if ''.join(cards1).count(cards1[0]) == 3 else cards1[-1]
+			twoLarger = cards2[0] if ''.join(cards2).count(cards2[0]) == 3 else cards2[-1]
+			if rankings[oneLarger] != rankings[twoLarger]:
+				return rankings[twoLarger] - rankings[oneLarger]
+			else:
+				oneSmaller = cards1[0] if ''.join(cards1).count(cards1[0]) == 2 else cards1[-1]
+				twoSmaller = cards2[0] if ''.join(cards2).count(cards2[0]) == 2 else cards2[-1]
+				return rankings[twoSmaller] - rankings[oneSmaller]
+		elif oneFull:
+			return -1
+		else:
+			return 1
+
+def flush(hand1, hand2):
+	if not isFlush(hand1) and not isFlush(hand2):
+		return 0
+	else:
+		if isFlush(hand1) and isFlush(hand2):
+			cards1 = sorted(map(lambda x: x[0], hand1), cmp=sortCards)
+			cards2 = sorted(map(lambda x: x[0], hand2), cmp=sortCards)
+			for i in xrange(0,5):
+				if rankings[cards1[4-i]] != rankings[cards2[4-i]]:
+					return rankings[cards2[4-i]] - rankings[cards1[4-i]]
+			print "Failed!"
+			return -1 # Should never be reached
+		elif isFlush(hand1):
+			return -1
+		else:
+			return 1
+
+def straight(hand1, hand2):
+	if not isStraight(hand1) and not isStraight(hand2):
+		return 0
+	else:
+		if isStraight(hand1) and not isStraight(hand2):
+			oneLargest = sorted(map(lambda x: x[0], hand1), cmp=sortCards)[-1]
+			twoLargest = sorted(map(lambda x: x[0], hand2), cmp=sortCards)[-1]
+			return rankings[twoLargest] - rankings[oneLargest]
+		elif isStraight(hand1):
+			return -1
+		else:
+			return 1
+
+def threeOfAKind(hand1, hand2):
+	cards1 = sorted(map(lambda x: x[0], hand1), cmp=sortCards)
+	cards2 = sorted(map(lambda x: x[0], hand2), cmp=sortCards)
+	oneThree = ''.join(cards1).count(cards1[0]) == 3 or ''.join(cards1).count(cards1[1]) == 3 or ''.join(cards1).count(cards1[2]) == 3
+	twoThree = ''.join(cards2).count(cards2[0]) == 3 or ''.join(cards2).count(cards2[1]) == 3 or ''.join(cards2).count(cards2[2]) == 3
+	if not oneThree and not twoThree:
+		return 0
+	else:
+		if (oneThree and twoThree):
+			if ''.join(cards1).count(cards1[0]) == 3:
+				oneThreeCard = cards1[0]
+			elif ''.join(cards1).count(cards1[1]) == 3:
+				oneThreeCard = cards1[1]
+			else:
+				oneThreeCard = cards1[2]
+
+			if ''.join(cards2).count(cards2[0]) == 3:
+				twoThreeCard = cards2[0]
+			elif ''.join(cards2).count(cards2[1]) == 3:
+				twoThreeCard = cards2[1]
+			else:
+				twoThreeCard = cards2[2]
+
+			if rankings[oneThreeCard] != rankings[twoThreeCard]:
+				return rankings[twoThreeCard] - rankings[oneThreeCard]
+			else:
+				oneOther = [y for y in cards1 if y != oneThreeCard]
+				twoOther = [y for y in cards2 if y != twoThreeCard]
+				for i in xrange(0,2):
+					if rankings[oneOther[1-i]] != rankings[twoOther[1-i]]:
+						return rankings[twoOther[1-i]] - rankings[oneOther[1-i]]
+		elif oneThree:
+			return -1
+		else:
+			return 1
+
+def twoPairs(hand1, hand2):
+	cards1 = sorted(map(lambda x: x[0], hand1), cmp=sortCards)
+	cards2 = sorted(map(lambda x: x[0], hand2), cmp=sortCards)
+	oneData = {x: cards1.count(x) for x in cards1}
+	twoData = {x: cards2.count(x) for x in cards2}
+	if oneData.values().count(2) != 2 and twoData.values().count(2) != 2:
+		return 0
+	else:
+		if oneData.values().count(2) == 2 and twoData.values().count(2) == 2:
+			onePairs = sorted(filter(lambda x: oneData[x] == 2, oneData), cmp=sortCards)
+			twoPairs = sorted(filter(lambda x: twoData[x] == 2, twoData), cmp=sortCards)
+			for i in xrange(0,2):
+				if rankings[onePairs[1-i]] != rankings[twoPairs[1-i]]:
+					return rankings[twoPairs[1-i]] - rankings[onePairs[1-i]]
+			oneSingle = [y for y in x if cards1.count(y) == 1][0]
+			twoSingle = [y for y in x if cards2.count(y) == 1][0]
+			return rankings[twoSingle] - rankings[oneSingle]
+		elif oneData.values().count(2) == 2:
+			return -1
+		else:
+			return 1
+
+def onePair(hand1, hand2):
+	cards1 = sorted(map(lambda x: x[0], hand1), cmp=sortCards)
+	cards2 = sorted(map(lambda x: x[0], hand2), cmp=sortCards)
+	oneData = {x: cards1.count(x) for x in cards1}
+	twoData = {x: cards2.count(x) for x in cards2}
+	if oneData.values().count(2) != 2 and twoData.values().count(2) != 2:
+		return 0
+	else:
+		if oneData.values().count(2) == 2 and twoData.values().count(2) == 2:
+			onePairs = sorted(filter(lambda x: oneData[x] == 2, oneData), cmp=sortCards)
+			twoPairs = sorted(filter(lambda x: twoData[x] == 2, twoData), cmp=sortCards)
+			for i in xrange(0,2):
+				if rankings[onePairs[1-i]] != rankings[twoPairs[1-i]]:
+					return rankings[twoPairs[1-i]] - rankings[onePairs[1-i]]
+			oneSingle = [y for y in x if cards1.count(y) == 1][0]
+			twoSingle = [y for y in x if cards2.count(y) == 1][0]
+			return rankings[twoSingle] - rankings[oneSingle]
+		elif oneData.values().count(2) == 2:
 			return -1
 		else:
 			return 1
@@ -108,7 +247,27 @@ def oneWon(hand1, hand2):
 			if s != 0:
 				return s < 0
 			else:
-				return False
+				s = fullHouse(hand1,hand2)
+				if s != 0:
+					return s < 0
+				else:
+					s = flush(hand1,hand2)
+					if s != 0:
+						return s < 0
+					else:
+						s = straight(hand1,hand2)
+						if s != 0:
+							return s < 0
+						else:
+							s = threeOfAKind(hand1,hand2)
+							if s != 0:
+								return s < 0
+							else:
+								s = twoPairs(hand1,hand2)
+								if s != 0:
+									return s < 0
+								else:
+									return False
 
 total = 0
 with open('poker.txt','r') as f:
