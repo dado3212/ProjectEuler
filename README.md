@@ -10,4 +10,4 @@ You can [check out](https://projecteuler.net) the problems on the website.
 <li>Python</li>
 </ul>
 
-** Created by Alex Beals © 2015-2016 **
+**Created by Alex Beals © 2015-2016**
